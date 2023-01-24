@@ -108,26 +108,25 @@ elif model == "CNN":
     XTest.shape = (10000, 28, 28, 1)
 
     yTrainCategorical = to_categorical(yTrain)
-    yCrossValidationCategorical = to_categorical(yTrain)
-    yTestCategorical = to_categorical(yTrain)
+    yCrossValidationCategorical = to_categorical(yCrossValidation)
+    yTestCategorical = to_categorical(yTest)
 
-    batchSize = 64
-    epochs = 20
+    batchSize = 128
+    epochs = 15
     numClasses = 10
-    cnn = Sequential()
-    cnn.add(Conv2D(32, kernel_size=(3, 3), activation='linear', input_shape=(28,28,1), padding='same'))
-    cnn.add(LeakyReLU(alpha=0.1))
-    cnn.add(MaxPooling2D((2,2), padding='same'))
-    cnn.add(Conv2D(64, kernel_size=(3, 3), activation='linear', padding='same'))
-    cnn.add(LeakyReLU(alpha=0.1))
-    cnn.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    cnn.add(Conv2D(128, (3, 3), activation='linear', padding='same'))
-    cnn.add(LeakyReLU(alpha=0.1))
-    cnn.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-    cnn.add(Flatten())
-    cnn.add(Dense(128, activation='linear'))
-    cnn.add(LeakyReLU(alpha=0.1))
-    cnn.add(Dense(numClasses, activation='softmax'))
-    cnn.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-    cnnTrain = cnn.fit(XTrain, yTrain, batch_size=batchSize, epochs=20, verbose=1, validation_data=(XCrossValidation, yCrossValidation))
-
+    inputShape = (28, 28, 1)
+    cnn = Sequential(
+        [
+            keras.Input(shape=inputShape),
+            Conv2D(32, kernel_size=(3,3), activation="relu"),
+            MaxPooling2D(pool_size=(2,2)),
+            Conv2D(64, kernel_size=(3,3), activation="relu"),
+            MaxPooling2D(pool_size=(2,2)),
+            Flatten(),
+            Dropout(0.5),
+            Dense(numClasses, activation="softmax"),
+        ]
+    )
+    cnn.summary()
+    cnn.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    cnnTrain = cnn.fit(XTrain, yTrainCategorical, batch_size=batchSize, epochs=epochs, verbose=1, validation_data=(XCrossValidation, yCrossValidationCategorical))
